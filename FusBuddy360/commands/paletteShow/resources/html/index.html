@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FusBuddy360</title>
+    <script src="static/palette.js"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #1e1f22;
+        --panel: #2b2d31;
+        --muted: #9aa0a6;
+        --text: #e6e6e6;
+        --border: #3a3d43;
+        --accent: #4c8dff;
+        --user: #3b3f47;
+        --assistant: #2f3a52;
+        --danger: #ff6b6b;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      header {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+      }
+      header .title {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      header .subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .messages {
+        flex: 1;
+        overflow: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .msg {
+        max-width: 92%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        line-height: 1.5;
+        font-size: 13px;
+      }
+      .msg.user {
+        align-self: flex-end;
+        background: var(--user);
+        white-space: pre-wrap;
+      }
+      .msg.assistant {
+        align-self: flex-start;
+        background: var(--assistant);
+      }
+      .msg.assistant h1,
+      .msg.assistant h2,
+      .msg.assistant h3 {
+        margin: 8px 0 6px 0;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .msg.assistant h1 {
+        font-size: 18px;
+      }
+      .msg.assistant h2 {
+        font-size: 16px;
+      }
+      .msg.assistant h3 {
+        font-size: 14px;
+      }
+      .msg.assistant p {
+        margin: 6px 0;
+      }
+      .msg.assistant strong {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .msg.assistant em {
+        font-style: italic;
+      }
+      .step-item {
+        display: flex;
+        align-items: flex-start;
+        margin: 6px 0;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+      .step-checkbox {
+        margin-right: 8px;
+        margin-top: 2px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .step-text {
+        flex: 1;
+        line-height: 1.4;
+      }
+      .step-item:hover .step-text {
+        color: var(--accent);
+      }
+      .step-checkbox:checked + .step-text {
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .composer {
+        border-top: 1px solid var(--border);
+        background: var(--panel);
+        padding: 10px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 10px;
+        background: #191a1d;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+      }
+      input[type="text"]:focus {
+        border-color: var(--accent);
+      }
+      button {
+        padding: 10px 14px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .status {
+        padding: 8px 12px;
+        font-size: 12px;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+        background: #17181b;
+      }
+      .status.error {
+        color: var(--danger);
+      }
+      .settings-label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+        display: block;
+      }
+      .settings-input {
+        width: 100%;
+        padding: 6px 8px;
+        background: #191a1d;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 6px;
+      }
+      .settings-input:focus {
+        border-color: var(--accent);
+        outline: none;
+      }
+      .settings-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .settings-row button {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="title">FusBuddy360</div>
+        <div class="subtitle">Ask a question about what you’re trying to do.</div>
+      </header>
+
+      <main id="messages" class="messages" aria-label="Chat messages"></main>
+
+      <div class="composer">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="e.g., How do I fillet these edges?"
+          autocomplete="off"
+        />
+        <button id="sendBtn" type="button">Send</button>
+      </div>
+
+      <div id="status" class="status">Ready.</div>
+      <!-- viewport screenshot preview -->
+      <details
+        open
+        style="border-top: 1px solid var(--border); background: #17181b; padding: 10px 12px"
+      >
+        <summary style="cursor: pointer; color: var(--muted); font-size: 12px">Screenshot</summary>
+        <img
+          id="screenshotPreview"
+          alt="Viewport screenshot"
+          style="
+            display: none;
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+          "
+        />
+      </details>
+
+      <!-- todo check if json updates as selection changes -->
+      <!-- Context snapshot  -->
+      <!-- <details style="border-top: 1px solid var(--border); background: #17181b; padding: 10px 12px;">
+        <summary style="cursor: pointer; color: var(--muted); font-size: 12px;">Context (read-only snapshot)</summary>
+        <pre id="context" style="margin: 10px 0 6px; white-space: pre-wrap; font-size: 12px; color: var(--text);"></pre>
+    </details> -->
+
+      <!-- api key settings -->
+      <details style="border-top: 1px solid var(--border); background: #17181b; padding: 10px 12px">
+        <summary style="cursor: pointer; color: var(--muted); font-size: 12px">
+          Settings (API Keys)
+        </summary>
+        <div style="margin-bottom: 12px">
+          <label for="openaiKeyInput" class="settings-label">OpenAI API key (stored locally)</label>
+          <div class="settings-row">
+            <input
+              id="openaiKeyInput"
+              class="settings-input"
+              type="password"
+              placeholder="sk-..."
+              autocomplete="off"
+            />
+            <button id="saveOpenAIKeyBtn" type="button">Save</button>
+          </div>
+        </div>
+        <div>
+          <label for="geminiKeyInput" class="settings-label"
+            >Google Gemini API key (stored locally)</label
+          >
+          <div class="settings-row">
+            <input
+              id="geminiKeyInput"
+              class="settings-input"
+              type="password"
+              placeholder="AIza..."
+              autocomplete="off"
+            />
+            <button id="saveGeminiKeyBtn" type="button">Save</button>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 8px">
+          Tip: You can also set environment variables <code>FUSBUDDY360_OPENAI_API_KEY</code> or
+          <code>FUSBUDDY360_GEMINI_API_KEY</code> before launching Fusion. <br />FusBuddy360 will
+          use Gemini if available, otherwise OpenAI.
+        </div>
+      </details>
+    </div>
+  </body>
+</html>
